@@ -4,6 +4,7 @@
 var _ = require('underscore');
 var request = require('request');
 var spark = require('spark');
+var async = require('async');
 
 
 var map = [];
