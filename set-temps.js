@@ -12,6 +12,49 @@ var map = [];
 // Login as usual
 var promise = spark.login({ username: 'dan.fein@weather.com', password: 'weather12' });
 
+
+var fetch = function(loc, cb) {
+
+ request(loc.url, function(error, response, body) {
+    if (!error && response.statusCode == 200) {
+//            console.log(body) // Print the google web page.
+      var data = JSON.parse(body);
+//        console.log(data.current_observation.station.name);
+//        console.log(data.current_observation.temperature);
+      if(data && data.current_observation) {
+        var temp = data.current_observation.temperature;
+        var precip_today = data.current_observation.precip_today;
+        var color;
+        /*
+        if(precip_today) {
+          color = 155;
+        } else {
+          color = 65;
+        }
+        */
+        if(temp >= 60) {
+          color = '255';
+        }
+        if(temp < 60) {
+          color = '155';
+        }
+//        var command = index + ':' + color;
+//        map[index].command = command;
+        cb(null, color);
+
+//        console.log(command);
+//        console.log(color);
+      } else {
+        cb(null, '001');
+      }
+    } else {
+      cb("error 1");
+    }
+  });
+
+};
+
+
 promise.then(
   function(token){
     // If login is successful we get and accessToken,
@@ -24,41 +67,29 @@ promise.then(
         console.log('API call List Devices completed on promise resolve: ', devices);
         var device = devices[0];
 
-        _.each(map, function(loc, index) {
-          console.log(loc.url);
-          request(loc.url, function(error, response, body) {
-            if (!error && response.statusCode == 200) {
-      //            console.log(body) // Print the google web page.
-              var data = JSON.parse(body);
-      //        console.log(data.current_observation.station.name);
-      //        console.log(data.current_observation.temperature);
-              if(data && data.current_observation) {
-                var temp = data.current_observation.temperature;
-                var precip_today = data.current_observation.precip_today;
-                var color;
-                /*
-                if(precip_today) {
-                  color = 155;
-                } else {
-                  color = 65;
-                }
-                */
-                if(temp >= 60) {
-                  color = 255;
-                }
-                if(temp < 60) {
-                  color = 155;
-                }
-                var command = index + ':' + color;
-                map[index].command = command;
-                console.log(command);
-                if(index == 98) {
-                  rec_call(device, 0);
-                }
+        async.map(map, fetch, function(err, results) {
+          if(err) {
+            console.log('async map error occurred:', err);
+          } else {
+            console.log('results found');
+            console.log(results);
+            var command = "";
+            _.each(results, function(el, index) {
+              command += el + ':';
+            });
+            console.log(command);
+            device.callFunction('rainbow', command, function(err, data) {
+              if (err) {
+                console.log('An error occurred:', err);
+              } else {
+                console.log('Function called succesfully:', data);
+//                rec_call(device, index+1);
               }
-            }
-          });
-        });
+            });
+          }
+          //rec_call(device, 0);
+
+         });
 
       },
       function(err) {
