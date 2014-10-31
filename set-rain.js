@@ -25,13 +25,11 @@ var fetch = function(loc, cb) {
         var temp = data.current_observation.temperature;
         var precip_today = data.current_observation.precip_today;
         var color;
-        /*
         if(precip_today) {
           color = 155;
         } else {
-          color = 65;
+          color = 95;
         }
-        */
         /*
         if(temp >= 60) {
           color = '255';
@@ -40,7 +38,6 @@ var fetch = function(loc, cb) {
           color = '155';
         }
         */
-        color = Math.floor(temp);
 //        var command = index + ':' + color;
 //        map[index].command = command;
         cb(null, color);
@@ -62,7 +59,7 @@ var spark_device = null;
 var batch_send = function(command, cb) {
 
   console.log('sending command: ' + command);
-  spark_device.callFunction('heatmap', command, function(err, data) {
+  spark_device.callFunction('rainmap', command, function(err, data) {
     if (err) {
       console.log('An error occurred:', err);
       cb(err);

@@ -25,13 +25,11 @@ var fetch = function(loc, cb) {
         var temp = data.current_observation.temperature;
         var precip_today = data.current_observation.precip_today;
         var color;
-        /*
         if(precip_today) {
           color = 155;
         } else {
           color = 65;
         }
-        */
         /*
         if(temp >= 60) {
           color = '255';
@@ -40,7 +38,6 @@ var fetch = function(loc, cb) {
           color = '155';
         }
         */
-        color = Math.floor(temp);
 //        var command = index + ':' + color;
 //        map[index].command = command;
         cb(null, color);
@@ -62,7 +59,7 @@ var spark_device = null;
 var batch_send = function(command, cb) {
 
   console.log('sending command: ' + command);
-  spark_device.callFunction('heatmap', command, function(err, data) {
+  spark_device.callFunction('rainmap', command, function(err, data) {
     if (err) {
       console.log('An error occurred:', err);
       cb(err);
@@ -89,43 +86,17 @@ promise.then(
         var device = devices[0];
         spark_device = device;
 
-        async.map(map, fetch, function(err, results) {
-          if(err) {
-            console.log('async map error occurred:', err);
+        var command = "blah";
+        spark_device.callFunction('rainbow', command, function(err, data) {
+          if (err) {
+            console.log('An error occurred:', err);
+            //cb(err);
           } else {
-            console.log('results found');
-            console.log(results);
-            var command = "";
-            var count = 4;
-            var it = 0;
-            var command_set = [];
-            _.each(results, function(el, index) {
-              command += index + ':' + el + ';';
-              if(it < count) {
-                it++;
-              } else {
-                command_set.push(command);
-                command = "";
-                it = 0;
-              }
-            });
-//            command_set.push(command);
-            console.log(command_set);
-            console.log(command);
-
-            async.eachSeries(command_set, batch_send, function(err) {
-              if(err) {
-                console.log("error occurred: " + err);
-              } else {
-                console.log("no errors!");
-              }
-            });
-            
-            
+            console.log('Function called succesfully:', data);
+            //cb(null);
+          //                rec_call(device, index+1);
           }
-          //rec_call(device, 0);
-
-         });
+        });
 
       },
       function(err) {
@@ -293,4 +264,4 @@ function blah() {
   }
 }
 
-blah();
+//blah();
